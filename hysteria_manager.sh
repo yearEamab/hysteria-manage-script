@@ -4,7 +4,7 @@ DOMAIN=
 MAIL=
 URL=
 PASSWORD=
-CONFIGFILE="config.yml"
+CONFIGFILE="/etc/hysteria/config.yaml"
 
 has_command() {
   local _command=$1
@@ -185,9 +185,60 @@ restart_server(){
   systemctl restart hysteria-server.service
 }
 
+install(){
+  bash install_server.sh
+  enable_server  
+}
+
+remove(){
+  bash install_server.sh --remove
+  rm -rf /etc/hysteria
+  userdel -r hysteria
+  rm -f /etc/systemd/system/multi-user.target.wants/hysteria-server.service
+  systemctl daemon-reload
+}
+
+check_update(){
+  bash install_server.sh --check
+}
+
+install_version(){
+  echo "请输入你要安装的版本"
+  local _ver
+  read _ver
+  bash install_server.sh --version "$_ver"
+}
+
+enable_server(){
+  if $(systemctl enable hysteria-server.service);then
+    echo "$(tgreen)设置自启动成功$(treset)"
+  else
+    echo "$(tred)没有hysteria服务$(treset)"
+  fi
+}
+
+start_server(){
+  if $(systemctl start hysteria-server.service);then
+    echo "$(tgreen)启动成功$(treset)"
+  else
+    echo "$(tred)启动失败$(treset)"
+  fi
+}
+
+stop_server(){
+  if $(systemctl stop hysteria-server.service);then
+    echo "$(tgreen)已停止服务$(treset)"
+  else
+    echo "$(tred)停止服务失败$(treset)"
+  fi
+}
+
+
 menu(){
   while true
   do
+    echo -e "\n=========================="
+	echo "0、退出"
     echo "1、修改全部配置"
 	echo "2、修改域名"
 	echo "3、修改邮箱"
@@ -198,9 +249,16 @@ menu(){
 	echo "8、保存到配置文件"
 	echo "9、重启服务"
 	echo "10、输出客户端配置"
-	echo "0、退出"
+	echo "i、安装hysteria"
+	echo "r、卸载hysteria"
+	echo "c、检查版本升级"
+	echo "v、安装特定版本"
+	echo "e、设置自启动"
+	echo "s、启动服务"
+	echo "t、停止服务"
 	echo "请选择你的选项:"
 	read i
+    echo -e "\n"
 	case "$i" in
 	  "1")
 	    set_all
@@ -232,6 +290,27 @@ menu(){
 	  "10")
 	    print_client_conf
 	    ;;
+	  "i")
+	    install
+		;;
+	  "r")
+	    remove
+		;;
+	  "c")
+	    check_update
+		;;
+	  "v")
+	    install_version
+		;;
+	  "e")
+	    enable_server
+		;;
+	  "s")
+	    start_server
+		;;
+	  "t")
+	    stop_server
+		;;
 	  "0")
 	    exit
 	    ;;

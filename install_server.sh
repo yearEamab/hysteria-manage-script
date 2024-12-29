@@ -909,7 +909,7 @@ download_hysteria() {
 
   local _download_url="$REPO_URL/releases/download/app/$_version/hysteria-$OPERATING_SYSTEM-$ARCHITECTURE"
   echo "Downloading hysteria binary: $_download_url ..."
-  if ! curl -R -H 'Cache-Control: no-cache' "$_download_url" -o "$_destination"; then
+  if ! curl -L -R -H 'Cache-Control: no-cache' "$_download_url" -o "$_destination"; then
     error "Download failed, please check your network and try again."
     return 11
   fi
